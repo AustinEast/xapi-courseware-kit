@@ -7,53 +7,52 @@ This document represents the Riptide Elements® implementation of xAPI. This lib
 In this document we will refer to concepts such as: _activity_, _page_ and _topic_. These ideas relate specifically to how the Elements e-learning software is setup. In Elements, a single course is made up of one or more _topics_. Furthermore, each _topic_ is comprised of one or more _pages_. An _activity_ is an interactive section of a course (such as a drag-and-drop exercise) usually on a single _page_.
 
 ## Table of Contents
-* [**Answers**](### Answers)
-⋅⋅* [onAnswerChanged](#### onAnswerChanged())
-⋅⋅* [Answer Statement Example](#### Answer Statement Example)
-* [**Assessments**](### Assessments)
-⋅⋅* [onAssessmentLaunched](#### onAssessmentLaunched())
-⋅⋅* [onAssessmentAttempted](#### onAssessmentAttempted())
-⋅⋅* [onAssessmentCompleted](#### onAssessmentCompleted())
-⋅⋅* [Assessment Statement Example](#### Assessment Statement Example)
-* [**Course**](### Course)
-⋅⋅* [onCourseInitialized](#### onCourseInitialized())
-⋅⋅* [onCourseResumed](#### onCourseResumed())
-⋅⋅* [onCourseProgressed](#### onCourseProgressed())
-⋅⋅* [onCourseSuspended](#### onCourseSuspended())
-⋅⋅* [onCourseTerminated](#### onCourseTerminated())
-⋅⋅* [onCourseCompleted](#### onCourseCompleted())
-⋅⋅* [Course Statement Example](#### Course Statement Example)
-* [**Media**](### Media)
-⋅⋅* [onMediaExperienced](#### onMediaExperienced())
-⋅⋅* [onMediaInteracted](#### onMediaInteracted())
-⋅⋅* [Media Statement Example](#### Media Statement Example)
-* [**Module**](### Module)
-⋅⋅* [onModuleLaunched](#### onModuleLaunched())
-⋅⋅* [onModuleProgressed](#### onModuleProgressed())
-⋅⋅* [onModuleExperienced](#### onModuleExperienced())
-⋅⋅* [Module Statement Example](#### Module Statement Example)
-* [**Questions**](### Questions)
-⋅⋅* [onSimulationLaunched](#### onSimulationLaunched())
-⋅⋅* [onQuestionAsked](#### onQuestionAsked())
-⋅⋅* [onQuestionAnswered](#### onQuestionAnswered())
-⋅⋅* [onQuestionCompleted](#### onQuestionCompleted())
-⋅⋅* [onQuestionExperienced](#### onQuestionExperienced())
-⋅⋅* [Question Statement Example](#### Question Statement Example)
-* [**Simulations**](### Simulations)
-⋅⋅* [onQuestionInteracted](#### onQuestionInteracted())
-⋅⋅* [onSimulationAttempted](#### onSimulationAttempted())
-⋅⋅* [onSimulationProgressed](#### onSimulationProgressed())
-⋅⋅* [onSimulationCompleted](#### onSimulationCompleted())
-⋅⋅* [onSimulationMastered](#### onSimulationMastered())
-⋅⋅* [Simulation Statement Example](#### Simulation Statement Example)
-* [**Extending Statements**](### Extending Statements)
-⋅⋅* [addExtension](#### addExtension())
+* [**Answers**](#answers)
+    * [onAnswerChanged](#onanswerchanged)
+    * [Answer Statement Example](#answer-statement-example)
+* [**Assessments**](#assessments)
+    * [onAssessmentLaunched](#onassessmentlaunched)
+    * [onAssessmentAttempted](#onassessmentattempted)
+    * [onAssessmentCompleted](#onassessmentcompleted)
+    * [Assessment Statement Example](#assessment-statement-example)
+* [**Course**](#course)
+    * [onCourseInitialized](#oncourseinitialized)
+    * [onCourseResumed](#oncourseresumed)
+    * [onCourseProgressed](#oncourseprogressed)
+    * [onCourseSuspended](#oncoursesuspended)
+    * [onCourseTerminated](#oncourseterminated)
+    * [onCourseCompleted](#oncoursecompleted)
+    * [Course Statement Example](#course-statement-example)
+* [**Media**](#media)
+    * [onMediaExperienced](#onmediaexperienced)
+    * [onMediaInteracted](#onmediainteracted)
+    * [Media Statement Example](#media-statement-example)
+* [**Module**](#module)
+    * [onModuleLaunched](#onmodulelaunched)
+    * [onModuleProgressed](#onmoduleprogressed)
+    * [onModuleExperienced](#onmoduleexperienced)
+    * [Module Statement Example](#module-statement-example)
+* [**Questions**](#questions)
+    * [onQuestionAsked](#onquestionasked)
+    * [onQuestionAnswered](#onquestionanswered)
+    * [onQuestionCompleted](#onquestioncompleted)
+    * [onQuestionExperienced](#onquestionexperienced)
+    * [Question Statement Example](#question-statement-example)
+* [**Simulations**](#simulations)
+    * [onQuestionInteracted](#onquestioninteracted)
+    * [onSimulationAttempted](#onsimulationattempted)
+    * [onSimulationProgressed](#onsimulationprogressed)
+    * [onSimulationCompleted](#onsimulationcompleted)
+    * [onSimulationMastered](#onsimulationmastered)
+    * [Simulation Statement Example](#simulation-statement-example)
+* [**Extending Statements**](#extending-statements)
+    * [addExtension](#addextension)
 
 ### Answers
 
 Answer statements are typically associated with user submitted questions.
 
-#### onAnswerChanged()
+#### onAnswerChanged
 
 Used to generate a statement each time a user changes his/her answer choice.
 
@@ -137,7 +136,7 @@ could result in the corresponding xAPI statement:
 
 > Assessments are activities with questions.
 
-#### onAssessmentLaunched()
+#### onAssessmentLaunched
 
 Used to generate a statement each time an assessment is started.
 
@@ -153,7 +152,7 @@ Contextual Data | Type | Description
 **description** | _{string}_ | Description of Assessment
 
 
-#### onAssessmentAttempted()
+#### onAssessmentAttempted
 
 Used to generate a statement each time a user finishes all required sections of an activity, regardless of level of success.
 
@@ -169,7 +168,7 @@ Contextual Data | Type | Description
 **description** | _{string}_ | Description of Assessment
 
 
-#### onAssessmentCompleted()
+#### onAssessmentCompleted
 
 Used to generate a statement each time a user finishes all required sections of an activity with a satisfying level of success.
 
@@ -235,7 +234,7 @@ could result in the corresponding xAPI statement:
 
 > These statements hold information on a user's progress through a course. Analyzing these statements can provide some important insights including: which users have completed the course, how long the entire course takes to complete, and even a particular user's progress percentage.
 
-#### onCourseInitialized()
+#### onCourseInitialized
 
 Used to generate a statement each time the system starts up the course for a new user (users first time in course).
 
@@ -249,7 +248,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onCourseResumed()
+#### onCourseResumed
 
 Used to generate a statement each time the system starts up the course for a given user except for the very first time.
 
@@ -263,7 +262,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onCourseProgressed()
+#### onCourseProgressed
 
 Used to generate a statement each time the user advances through the course.
 
@@ -277,7 +276,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onCourseSuspended()
+#### onCourseSuspended
 
 Used to generate a statement each time the system is _suspended_.
 
@@ -291,7 +290,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onCourseTerminated()
+#### onCourseTerminated
 
 Used to generate a statement each time the system closes the learning session.
 
@@ -305,7 +304,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onCourseCompleted()
+#### onCourseCompleted
 
 Used to generate a statement each time the system closes the learning session.
 
@@ -372,7 +371,7 @@ could result in the corresponding xAPI statement:
 
 Media statements are those which involve interaction with videos, images, and animations.
 
-#### onMediaExperienced()
+#### onMediaExperienced
 
 Used to generate a statement each time a user views a page containing media.
 
@@ -389,7 +388,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onMediaInteracted()
+#### onMediaInteracted
 
 Used to generate a statement each time a user interacts with a page's media. (Examples include: seeking/pausing a video, selecting an imagemap area, etc.)
 
@@ -468,7 +467,7 @@ could result in the corresponding xAPI statement:
 
 Modules represent any given segment of an learning experience. In Elements, modules usually coorespond to single topics, but may be used for delimiting other portions of a course as well.
 
-#### onModuleLaunched()
+#### onModuleLaunched
 
 Used to generate a statement each time the system begins a module.
 
@@ -482,7 +481,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onModuleProgressed()
+#### onModuleProgressed
 
 Used to generate a statement each time a user advances through a module.
 
@@ -495,7 +494,7 @@ Contextual Data | Type | Description
 **page** | _{string}_ | Associated Page Number
 **topic** | _{string}_ | Associated Topic Name
 
-#### onModuleExperienced()
+#### onModuleExperienced
 
 Used to generate a statement each time a user finishes (or visits a previously completed) module.
 
@@ -564,7 +563,7 @@ could result in the corresponding xAPI statement:
 Questions may consist of: Knowledge Check, Survey, Feedback Responses, etc. Additionally Questions are used inside many other activity types.
 
 
-#### onQuestionInteracted()
+#### onQuestionInteracted
 
 Used to generate a statement each time a user changes his/her answer choice, clicks/touches related interactive question media.
 
@@ -583,7 +582,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-## onQuestionAsked()
+## onQuestionAsked
 
 Used to generate a statement each time the system displays an unanswered question.
 
@@ -602,7 +601,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onQuestionAnswered()
+#### onQuestionAnswered
 
 Used to generate a statement each a user submits a question for grading.
 
@@ -622,7 +621,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onQuestionCompleted()
+#### onQuestionCompleted
 
 Used to generate a statement each a user submits a question for grading.
 
@@ -642,7 +641,7 @@ Contextual Data | Type | Description
 **topic** | _{string}_ | Associated Topic Name
 
 
-#### onQuestionExperienced()
+#### onQuestionExperienced
 
 Used to generate a statement each time a user views question previously answered.
 
@@ -725,7 +724,7 @@ could result in the corresponding xAPI statement:
 > Simulations are activities containing many objectives, often spanning over several pages. Some example Simulations may be: Branching Scenarios, Decision Points, Involved Custom Activites, Video with Questions, etc.
 
 
-#### onSimulationLaunched()
+#### onSimulationLaunched
 
 Used to generate a statement each time the system sets up/displays a simulation activity.
 
@@ -745,7 +744,7 @@ Contextual Data | Type | Description
 **completion** | _{boolean}_ | Simulation requirements satisfied
 
 
-#### onSimulationAttempted()
+#### onSimulationAttempted
 
 Used to generate a statement each time the user navigates to the simulation's end.
 
@@ -764,7 +763,7 @@ Contextual Data | Type | Description
 **success** | _{boolean}_ | Simulation success threshold reached
 **completion** | _{boolean}_ | Simulation requirements satisfied
 
-#### onSimulationProgressed()
+#### onSimulationProgressed
 
 Used to generate a statement each time a user advances through a simulation.
 
@@ -783,7 +782,7 @@ Contextual Data | Type | Description
 **success** | _{boolean}_ | Simulation success threshold reached
 **completion** | _{boolean}_ | Simulation requirements satisfied
 
-#### onSimulationCompleted()
+#### onSimulationCompleted
 
 Used to generate a statement each time a user finishes a simulation.
 
@@ -801,7 +800,7 @@ Contextual Data | Type | Description
 **score** | _{number}_ | User's Raw Score on Simulation
 **success** | _{boolean}_ | Simulation success threshold reached
 
-#### onSimulationMastered()
+#### onSimulationMastered
 
 Used to generate a statement when a user successfully completes and satisfies all simulation requirements.
 
@@ -884,7 +883,7 @@ could result in the corresponding xAPI statement:
 
 The Elements Platform has the ability to extend statements. Here's a quick glance at how we add additional extensions to an xAPI Statement.
 
-#### addExtension()
+#### addExtension
 
 Here's how you could create a media experienced statement with an video-specific extension:
 
