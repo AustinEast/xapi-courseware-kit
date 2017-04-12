@@ -4,304 +4,136 @@
 
 This document represents the Riptide Elements® implementation of xAPI. This library demonstrates many of the generic statements used in our courseware.
 
-In this document we will refer to concepts such as: _activity_, _page_ and _topic_. These ideas relate specifically to how the Elements e-learning software is setup. In Elements, a single course is made up of one or more _topics_. Furthermore, each _topic_ is comprised of one or more _pages_. An _activity_ is an interactive section of a course (such as a drag-and-drop exercise) usually on a single _page_.
+In this document we will refer to concepts such as: _activity_, _page_ and _topic_. These ideas relate specifically to how the Elements e-learning software is setup. In Elements, a single course is made up of one or more _topics_. Furthermore, each _topic_ is comprised of one or more _pages_. An _activity_ is an interactive section of a course (such as a drag-and-drop exercise) usually on a single _page_. Below is an example skeleton of a traditional course:
+
+```
+└─┬ Course
+  ├─┬ Topic
+  │ ├── Page
+  │ ├─┬ Page
+  │ │ └── Activity (Drag-And-Drop)
+  │ └── Page
+  └─┬ Topic
+    ├── Page
+    ├─┬ Page
+    │ └── Activity (Multiple Choice Assessment)
+    ├─┬ Page
+    │ └── Activity (Multiple Choice Assessment)
+    └─┬ Page
+      └── Activity (Assessment Results)
+```
+
+Generated statements fall into two basic categories: Course level (can also be refered to as App level) and Activity level statements. Course level statements are more general and cover the majority of generic actions a user can take. Activity level statements are more specific to the various activities that users will interact with.
+
+# Statement Generators
+
+At Riptide Elements®, we used statement generating functions that take in contextual information from courses and use that to create valid statements that are then sent to an LRS. 
+
+The following statement generating functions have been seperated out by whether they generate Course level or Activity level statements. Within those catagories, they have been organized into sections based on what information the statements are tracking (e.g. video-based statements, question-based statements).
 
 ## Table of Contents
-* [**Answers**](#answers)
-    * [onAnswerChanged](#onanswerchanged)
-    * [Answer Statement Example](#answer-statement-example)
-* [**Assessments**](#assessments)
-    * [onAssessmentLaunched](#onassessmentlaunched)
-    * [onAssessmentAttempted](#onassessmentattempted)
-    * [onAssessmentCompleted](#onassessmentcompleted)
-    * [Assessment Statement Example](#assessment-statement-example)
-* [**Course**](#course)
-    * [onCourseInitialized](#oncourseinitialized)
-    * [onCourseResumed](#oncourseresumed)
-    * [onCourseProgressed](#oncourseprogressed)
-    * [onCourseSuspended](#oncoursesuspended)
-    * [onCourseTerminated](#oncourseterminated)
-    * [onCourseCompleted](#oncoursecompleted)
-    * [Course Statement Example](#course-statement-example)
-* [**Media**](#media)
-    * [onMediaExperienced](#onmediaexperienced)
-    * [onMediaInteracted](#onmediainteracted)
-    * [Media Statement Example](#media-statement-example)
-* [**Module**](#module)
-    * [onModuleLaunched](#onmodulelaunched)
-    * [onModuleProgressed](#onmoduleprogressed)
-    * [onModuleExperienced](#onmoduleexperienced)
-    * [Module Statement Example](#module-statement-example)
-* [**Questions**](#questions)
-    * [onQuestionAsked](#onquestionasked)
-    * [onQuestionAnswered](#onquestionanswered)
-    * [onQuestionCompleted](#onquestioncompleted)
-    * [onQuestionExperienced](#onquestionexperienced)
-    * [Question Statement Example](#question-statement-example)
-* [**Simulations**](#simulations)
-    * [onQuestionInteracted](#onquestioninteracted)
-    * [onSimulationAttempted](#onsimulationattempted)
-    * [onSimulationProgressed](#onsimulationprogressed)
-    * [onSimulationCompleted](#onsimulationcompleted)
-    * [onSimulationMastered](#onsimulationmastered)
-    * [Simulation Statement Example](#simulation-statement-example)
-* [**Extending Statements**](#extending-statements)
-    * [addExtension](#addextension)
-
-### Answers
-
-Answer statements are typically associated with user submitted questions.
-
-#### onAnswerChanged
-
-Used to generate a statement each time a user changes his/her answer choice.
-
-> ACTIVITY: [QUESTION](http://www.adlnet.gov/expapi/activities/question.html)
-> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**questionId** | _{string}_ | Unique Question Id
-**questionText** | _{string}_ | Question Text
-**correctAnswer** | _{array}_ | Questions Correct Answer(s)
-**givenAnswer** | _{array}_ | User's Answer Choice(s)
-**possibleAnswers** | _{object}_ | Question's Possible Answer(s)
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
 
 
-#### Answer Statement Example
+- [Course Level Statements](#course-level-statements)
+  * [Course](#course)
+    + [onCourseLaunched](#oncourselaunched)
+    + [onCourseInitialized](#oncourseinitialized)
+    + [onCourseTerminated](#oncourseterminated)
+    + [onCourseCompleted](#oncoursecompleted)
+    + [Course Statement Example](#course-statement-example)
+  * [Topic](#topic)
+    + [onTopicLaunched](#ontopiclaunched)
+    + [onTopicComplete](#ontopiccomplete)
+    + [Topic Statement Example](#topic-statement-example)
+  * [Page](#page)
+    + [onPageLaunched](#onpagelaunched)
+    + [onPageLeft](#onpageleft)
+    + [onPageCompleted](#onpagecompleted)
+    + [Page Statement Example](#page-statement-example)
+- [Activity Level Statements](#activity-level-statements)
+  * [Activity](#activity)
+    + [onActivityLaunched](#onactivitylaunched)
+    + [onActivityCompleted](#onactivitycompleted)
+    + [Activity Statement Example](#activity-statement-example)
+  * [Assessments](#assessments)
+    + [onAssessmentLaunched](#onassessmentlaunched)
+    + [onAssessmentInitialized](#onassessmentinitialized)
+    + [onAssessmentAttempted](#onassessmentattempted)
+    + [onAssessmentPassed](#onassessmentpassed)
+    + [onAssessmentFailed](#onassessmentfailed)
+    + [onAssessmentCompleted](#onassessmentcompleted)
+    + [onAssessmentTerminated](#onassessmentterminated)
+    + [Assessment Statement Example](#assessment-statement-example)
+  * [Branching](#branching)
+    + [onBranchingSimulationLaunched](#onbranchingsimulationlaunched)
+    + [onBranchingSimulationProgressed](#onbranchingsimulationprogressed)
+    + [onBranchingSimulationCompleted](#onbranchingsimulationcompleted)
+    + [onBranchingSimulationAttempted](#onbranchingsimulationattempted)
+    + [onBranchingSimulationMastered](#onbranchingsimulationmastered)
+    + [Branching Statement Example](#branching-statement-example)
+  * [Questions](#questions)
+    + [onAnswerChanged](#onanswerchanged)
+    + [onQuestionAsked](#onquestionasked)
+    + [onQuestionAnswered](#onquestionanswered)
+    + [Question Statement Example](#question-statement-example)
+  * [Tooltips](#tooltips)
+    + [toolTipsInitialized](#tooltipsinitialized)
+    + [toolTipTouched](#tooltiptouched)
+    + [toolTipsCompleted](#tooltipscompleted)
+    + [ToolTips Statement Example](#tooltips-statement-example)
+  * [Videos](#videos)
+    + [onVideoSeeked](#onvideoseeked)
+    + [onVideoPlayed](#onvideoplayed)
+    + [onVideoPaused](#onvideopaused)
+    + [onVideoEnded](#onvideoended)
+    + [Video Statement Example](#video-statement-example)
+  * [Other](#other)
+    + [onFreeResponseAnswered](#onfreeresponseanswered)
+- [Extending Statements](#extending-statements)
+    + [addExtension](#addextension)
 
-Changing an answer with the data:
-```javascript
-    var contextualData = {
-        "topic": "kinesics",
-        "page": "12",
-        "activity": "KnowledgeCheck",
-        "questionId": "3",
-        "questionText": "Who warrants further observation because they could be a potential threat?"
-        "givenAnswer": "b",
-        "possibleAnswers": {
-            "a":"Person 1",
-            "b":"Person 2",
-            "c":"Person 3",
-            "d":"Person 4"
-        },
-        "correctAnswer": ["c"]
-    }
-```
-could result in the corresponding xAPI statement:
-```json
-    {
-      "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
-      "actor": {
-        "mbox": "mailto:mgutkin@gmail.com",
-        "name": "Matt Gutkin"
-      },
-      "verb": {
-        "id": "http://www.adlnet.gov/expapi/verbs/interacted.html",
-        "display": {
-          "en-us": "interacted"
-        }
-      },
-      "object": {
-        "id": "http://elmnts.com/courseware/cvit/qid/3",
-        "objectType": "Activity",
-        "definition": {
-          "name": {
-            "en-us": "Question 3"
-          },
-          "description": {
-            "en-us": "Who warrants further observation because they could be a potential threat?"
-          },
-          "type": "http://www.adlnet.gov/expapi/activities/question.html"
-        }
-      },
-      "context": {
-        "registration": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
-        "extensions": {
-          "http://elmnts.com/courseware/pageId": "12",
-          "http://elmnts.com/courseware/topicId": "3"
-        }
-      },
-      "timestamp": "2015-04-20T14:10:43.563Z",
-      "stored": "2015-04-20T14:10:13.992Z"
-    }
-```
+## Course Level Statements
 
+### Course
 
-### Assessments
+These statements hold information on a user's progress through a course. Analyzing these statements can provide some important insights including: which users have completed the course, how long the entire course takes to complete, and even a particular user's progress percentage. These statements do not require extra contextual data to function.
 
-> Assessments are activities with questions.
+#### onCourseLaunched
 
-#### onAssessmentLaunched
+Used to generate a statement each time the system starts up the course for a user.
 
-Used to generate a statement each time an assessment is started.
-
-> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
 > VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**description** | _{string}_ | Description of Assessment
+**N/A** | _{N/A}_ | N/A
 
-
-#### onAssessmentAttempted
-
-Used to generate a statement each time a user finishes all required sections of an activity, regardless of level of success.
-
-> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
-> VERB: [ATTEMPTED](http://www.adlnet.gov/expapi/verbs/attempted.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**description** | _{string}_ | Description of Assessment
-
-
-#### onAssessmentCompleted
-
-Used to generate a statement each time a user finishes all required sections of an activity with a satisfying level of success.
-
-> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
-> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**description** | _{string}_ | Description of Assessment
-**score** | _{number}_ | User's Raw Score on Assessment
-
-
-#### Assessment Statement Example
-
-Attempting a course with the data:
-```javascript
-    var contextualData = {
-        "topic": "kinesics",
-        "page": "12",
-        "activity": "BuildingOnIt",
-        "description": "Use the clues given to determine what the subject of the photos are."
-    }
-```
-could result in the corresponding xAPI statement:
-```json
-    {
-      "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
-      "actor": {
-        "mbox": "mailto:tleonhardt@gmail.com",
-        "name": "Tyler Leonhardt"
-      },
-      "verb": {
-        "id": "http://www.adlnet.gov/expapi/verbs/attempted.html",
-        "display": {
-          "en-us": "attempted"
-        }
-      },
-      "object": {
-        "id": "http://elmnts.com/courseware/cvit/BuildingOnIt/12",
-        "objectType": "Activity",
-        "definition": {
-          "type": "http://www.adlnet.gov/expapi/activities/assessment.html"
-        }
-      },
-      "context": {
-        "registration": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
-        "extensions": {
-          "http://elmnts.com/courseware/pageId": "12",
-          "http://elmnts.com/courseware/topicId": "3"
-        }
-      },
-      "timestamp": "2015-04-20T14:10:43.563Z",
-      "stored": "2015-04-20T14:10:13.992Z"
-    }
-```
-
-
-### Course
-
-> These statements hold information on a user's progress through a course. Analyzing these statements can provide some important insights including: which users have completed the course, how long the entire course takes to complete, and even a particular user's progress percentage.
 
 #### onCourseInitialized
 
 Used to generate a statement each time the system starts up the course for a new user (users first time in course).
 
 > ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
-> VERB: [INITIALIZED](http://www.adlnet.gov/expapi/verbs/completed.html)
-> ACTOR: SYSTEM
-
-Contextual Data | Type | Description
------------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
-
-#### onCourseResumed
-
-Used to generate a statement each time the system starts up the course for a given user except for the very first time.
-
-> ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
-> VERB: [RESUMED](http://www.adlnet.gov/expapi/verbs/resumed.html)
-> ACTOR: SYSTEM
-
-Contextual Data | Type | Description
------------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
-
-#### onCourseProgressed
-
-Used to generate a statement each time the user advances through the course.
-
-> ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
-> VERB: [PROGRESSED](http://www.adlnet.gov/expapi/verbs/resumed.html)
+> VERB: [INITIALIZED](http://www.adlnet.gov/expapi/verbs/initialized.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
-
-#### onCourseSuspended
-
-Used to generate a statement each time the system is _suspended_.
-
-> ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
-> VERB: [TERMINATED](http://www.adlnet.gov/expapi/verbs/resumed.html)
-> ACTOR: SYSTEM
-
-Contextual Data | Type | Description
------------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
+**N/A** | _{N/A}_ | N/A
 
 #### onCourseTerminated
 
 Used to generate a statement each time the system closes the learning session.
 
 > ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
-> VERB: [TERMINATED](http://www.adlnet.gov/expapi/verbs/resumed.html)
-> ACTOR: SYSTEM
+> VERB: [TERMINATED](http://www.adlnet.gov/expapi/verbs/terminated.html)
+> ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**N/A** | _{N/A}_ | N/A
 
 
 #### onCourseCompleted
@@ -310,24 +142,17 @@ Used to generate a statement each time the system closes the learning session.
 
 > ACTIVITY: [COURSE](http://www.adlnet.gov/expapi/activities/course.html)
 > VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
-> ACTOR: SYSTEM
+> ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|-----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**N/A** | _{N/A}_ | N/A
 
 
 #### Course Statement Example
 
-Completing a course with the data:
-```javascript
-    var contextualData = {
-        "topic": "kinesics",
-        "page": "19",
-    }
-```
-could result in the corresponding xAPI statement:
+Completing a course could result in the corresponding xAPI statement:
+
 ```json
     {
       "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
@@ -366,126 +191,110 @@ could result in the corresponding xAPI statement:
     }
 ```
 
+### Topic
 
-### Media
+These statements hold information on a user's progress through topics.
 
-Media statements are those which involve interaction with videos, images, and animations.
+#### onTopicLaunched
 
-#### onMediaExperienced
+Used to generate a statement each time the a user launches a page.
 
-Used to generate a statement each time a user views a page containing media.
-
-> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
-> VERB: [EXPERIENCED](http://www.adlnet.gov/expapi/verbs/experienced.html)
+> ACTIVITY: [MODULE](http://www.adlnet.gov/expapi/activities/module.html)
+> VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**mediaSrc** | _{string} | Path to Media Source
-**description** | _{}_ | Description of Media
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**url** | _{string}_ | Url of Launched Page
 
+#### onTopicComplete
 
-#### onMediaInteracted
+Used to generate a statement each time the a user launches a page.
 
-Used to generate a statement each time a user interacts with a page's media. (Examples include: seeking/pausing a video, selecting an imagemap area, etc.)
-
-> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
-> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
+> ACTIVITY: [MODULE](http://www.adlnet.gov/expapi/activities/module.html)
+> VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**mediaSrc** | _{string} | Path to Media Source
-**description** | _{}_ | Description of Media
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**url** | _{string}_ | Url of Launched Page
 
+#### Topic Statement Example
 
-#### Media Statement Example
+Completing a topic could result in the corresponding xAPI statement:
 
-Seeking a video with the data:
-```javascript
-    var contextualData = {
-        "topic": "kinesics",
-        "page": "2",
-        "activity": "Video",
-        "mediaSrc": "videos/what_is_kinesics.mp4",
-        "description": "Video to walk the learner through the basics of Kinesics."
-    }
-```
-could result in the corresponding xAPI statement:
 ```json
     {
       "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
       "actor": {
-        "mbox": "mailto:lwarr@gmail.com",
-        "name": "Elizabeth Warren"
-      },
-      "verb": {
-        "id": "http://www.adlnet.gov/expapi/verbs/interacted.html",
-        "display": {
-          "en-US": "interacted"
-        }
-      },
-      "object": {
-        "id": "http://elmnts.com/courseware/media/src/videos/what_is_kinesics.mp4",
-        "objectType": "Activity",
-        "definition": {
-          "name": {
-            "en-us": "videos/what_is_kinesics.mp4"
-          },
-          "description": {
-            "en-us": "Video to walk the learner through the basics of Kinesics."
-          }
-        },
-        "type":"http://www.adlnet.gov/expapi/activities/media.html"
-      },
-      "context": {
-        "registration": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
-        "extensions": {
-          "http://elmnts.com/courseware/video/duration": 30.647,
-          "http://elmnts.com/courseware/video/currentTime": 7.974425,
-          "http://elmnts.com/courseware/video/interaction": "seeked",
-          "http://elmnts.com/courseware/video/volume": 0.75,
-          "http://elmnts.com/courseware/video/previousTime": 8.005165,
-          "http://elmnts.com/courseware/pageId": "2",
-          "http://elmnts.com/courseware/topicId": "3"
-        }
-      },
+        	"mbox": "mailto:providerDefault@noreply.com",
+        	"name": "provider Default"
+    	},
+    	"verb": {
+        	"id": "http://adlnet.gov/expapi/verbs/completed",
+        	"display": {
+            	"en-us": "completed"
+        	}
+    	},
+    	"object": {
+        	"id": "https://elmnts.com/organizations/www/courses/test/topics/test",
+	        "objectType": "Activity",
+	        "definition": {
+	            "name": {
+	                "en-us": "mock topic"
+	            },
+	            "description": {
+	                "en-us": "mock course - mock topic"
+	            }
+	        }
+	    },
+	    "result": {
+	        "completion": true,
+	        "extensions": {
+	            "https://elmnts.com/courseware/topic/count": 2
+	        }
+	    },
+	    "context": {
+	        "registration": "00000000-a000-4000-a000-000000000000",
+	        "revision": "Elements",
+	        "language": "en-us",
+	        "extensions": {
+	            "https://elmnts.com/organization/user/attribute/team": "ExampleTeam",
+	            "https://elmnts.com/organization/user/attribute/base": "Castillo De San Marcos",
+	            "https://elmnts.com/organization/user/attribute/country": "USA",
+	            "https://elmnts.com/courseware/pageName": "Page Two",
+	            "https://elmnts.com/courseware/pageId": "2",
+	            "https://elmnts.com/courseware/topicName": "test",
+	            "https://elmnts.com/courseware/topicId": 1
+	        }
+    	},
       "timestamp": "2015-04-20T14:10:43.563Z",
       "stored": "2015-04-20T14:10:13.992Z"
     }
 ```
 
+### Page
 
+These statements hold information on a user's progress through individual pages.
 
-### Module
+#### onPageLaunched
 
-Modules represent any given segment of an learning experience. In Elements, modules usually coorespond to single topics, but may be used for delimiting other portions of a course as well.
+Used to generate a statement each time a user launches a page.
 
-#### onModuleLaunched
-
-Used to generate a statement each time the system begins a module.
-
-> ACTIVITY: [MODULE](http://www.adlnet.gov/expapi/activities/module.html)
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
 > VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
-> ACTOR: SYSTEM
+> ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**url** | _{string}_ | Url of Launched Page
 
 
-#### onModuleProgressed
+#### onPageLeft
 
-Used to generate a statement each time a user advances through a module.
+Used to generate a statement each time a user leaves a page.
 
-> ACTIVITY: [MODULE](http://www.adlnet.gov/expapi/activities/module.html)
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
 > VERB: [PROGRESSED](http://www.adlnet.gov/expapi/verbs/progressed.html)
 > ACTOR: USER
 
@@ -494,60 +303,283 @@ Contextual Data | Type | Description
 **page** | _{string}_ | Associated Page Number
 **topic** | _{string}_ | Associated Topic Name
 
-#### onModuleExperienced
+#### onPageCompleted
 
-Used to generate a statement each time a user finishes (or visits a previously completed) module.
+Used to generate a statement each time the system closes the learning session.
 
-> ACTIVITY: [MODULE](http://www.adlnet.gov/expapi/activities/module.html)
-> VERB: [EXPERIENCED](http://www.adlnet.gov/expapi/verbs/experienced.html)
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
+> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|-----------
+**N/A** | _{N/A}_ | N/A
+
+
+#### Page Statement Example
+
+Launching a page with the data:
+
+```javascript
+    var contextualData = {
+        "url": "www.example.com"
+    }
+```
+could result in the corresponding xAPI statement:
+
+```json
+    {
+    "actor": {
+        "mbox": "mailto:sjoyce@gmail.com",
+        "name": "Susan Joyce"
+    },
+    "verb": {
+        "id": "http://adlnet.gov/expapi/verbs/launched",
+        "display": {
+            "en-us": "launched"
+        }
+    },
+    "object": {
+        "id": "http://elmnts.com/courses/demo",
+        "objectType": "Activity",
+        "definition": {
+            "name": {
+                "en-us": "Demo Page"
+            },
+            "description": {
+                "en-us": "N/A"
+            }
+        }
+    },
+    "context": {
+        "registration": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
+        "revision": "Elements",
+        "language": "en-us",
+        "extensions": {
+            "https://elmnts.com/courseware/pageId": "1",
+            "https://elmnts.com/courseware/topicId": 12
+        }
+    },
+    "timestamp": "2017-04-03T20:18:48.004Z"
+}
+```
+
+## Activity Level Statements
+
+### Activity
+These statements hold information on a user's progress through Activities.
+
+#### onActivityLaunched
+
+Used to generate a statement each time an activity is launched.
+
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**activityName** | _{string}_ | Associated Activity Name
 
+#### onActivityCompleted
 
-#### Module Statement Example
+Used to generate a statement when an activity is marked as complete.
 
-Launching a module with the data:
-```javascript
-    var contextualData = {
-        "topic": "kinesics",
-        "page": "1",
-    }
-```
-could result in the corresponding xAPI statement:
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**activityID** | _{number}_ | Associated Activity ID
+**resultsPresent** | _{boolean}_ | Should Activity Results Be Appended
+**success** | _{boolean}_ | User's Success in Activity
+**min** | _{number}_ | Lowest Possible Score
+**max** | _{number}_ | Maximum Possible Score
+**score** | _{number}_ | User's Earned Score
+
+#### Activity Statement Example
+
+Launching an Activity could result in the corresponding xAPI statement:
+
 ```json
     {
       "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
       "actor": {
-        "mbox": "mailto:sharpd@gmail.com",
-        "name": "Daniel Sharp"
+          "mbox": "mailto:providerDefault@noreply.com",
+          "name": "provider Default"
       },
       "verb": {
-        "id": "http://www.adlnet.gov/expapi/verbs/experienced.html",
+          "id": "http://adlnet.gov/expapi/verbs/launched",
+          "display": {
+              "en-us": "launched"
+          }
+      },
+      "object": {
+          "id": "https://elmnts.com/organizations/www/courses/test/topics/test/pages/2/activities/Matching",
+          "objectType": "Activity",
+          "definition": {
+              "name": {
+                  "en-us": "Matching"
+              },
+              "description": {
+                  "en-us": "mock course - mock topic - 2 - Matching"
+              },
+              "type": "http://adlnet.gov/expapi/activities/simulation"
+          }
+      },
+      "context": {
+          "registration": "00000000-a000-4000-a000-000000000000",
+          "revision": "Elements",
+          "language": "en-us",
+          "extensions": {
+              "https://elmnts.com/organization/user/attribute/team": "ExampleTeam",
+              "https://elmnts.com/organization/user/attribute/base": "Castillo De San Marcos",
+              "https://elmnts.com/organization/user/attribute/country": "USA",
+              "https://elmnts.com/courseware/pageName": "Page Two",
+              "https://elmnts.com/courseware/pageId": "2",
+              "https://elmnts.com/courseware/topicName": "test",
+              "https://elmnts.com/courseware/topicId": 1
+          }
+      },
+      "timestamp": "2015-04-20T14:10:43.563Z",
+      "stored": "2015-04-20T14:10:13.992Z"
+    }
+```
+
+### Assessments
+
+Assessments are activities with questions for the user to answer.
+
+#### onAssessmentLaunched
+
+Used to generate a statement each time an assessment is started.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
+> ACTOR: SYSTEM
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+
+#### onAssessmentInitialized
+
+Used to generate a statement when formal tracking of the assessment starts.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [INITIALIZED](http://www.adlnet.gov/expapi/verbs/initialized.html)
+> ACTOR: SYSTEM
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+
+#### onAssessmentAttempted
+
+Used to generate a statement each time a user finishes all required sections of an activity, regardless of level of success.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [ATTEMPTED](http://www.adlnet.gov/expapi/verbs/attempted.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+
+#### onAssessmentPassed
+
+Used to generate a statement when a user has passed the given assessment.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [PASSED](http://www.adlnet.gov/expapi/verbs/passed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+**resultsPresent** | _{boolean}_ | Should Assessment Results Be Appended
+**success** | _{boolean}_ | User's Success in Assessment
+**min** | _{number}_ | Lowest Possible Score
+**max** | _{number}_ | Maximum Possible Score
+**score** | _{number}_ | User's Earned Score
+
+#### onAssessmentFailed
+
+Used to generate a statement when a user has failed the given assessment.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [FAILED](http://www.adlnet.gov/expapi/verbs/failed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+**resultsPresent** | _{boolean}_ | Should Assessment Results Be Appended
+**success** | _{boolean}_ | User's Success in Assessment
+**min** | _{number}_ | Lowest Possible Score
+**max** | _{number}_ | Maximum Possible Score
+**score** | _{number}_ | User's Earned Score
+
+#### onAssessmentCompleted
+
+Used to generate a statement each time a user finishes all required sections of an activity with a satisfying level of success.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+
+#### onAssessmentTerminated
+
+Used to generate a statement when formal tracking of the assessment ends.
+
+> ACTIVITY: [ASSESSMENT](http://www.adlnet.gov/expapi/activities/assessment.html)
+> VERB: [TERMINATED](http://www.adlnet.gov/expapi/verbs/terminated.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**assessmentID** | _{number}_ | Associated Assessment ID
+
+#### Assessment Statement Example
+
+Attempting a course with the data:
+
+```javascript
+    var contextualData = {
+        "activityID": "0",
+   }
+```
+could result in the corresponding xAPI statement:
+
+```json
+    {
+      "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
+      "actor": {
+        "mbox": "mailto:tleonhardt@gmail.com",
+        "name": "Tyler Leonhardt"
+      },
+      "verb": {
+        "id": "http://www.adlnet.gov/expapi/verbs/attempted.html",
         "display": {
-          "en-us": "launched"
+          "en-us": "attempted"
         }
       },
       "object": {
-        "id": "http://elmnts.com/courseware/cvit/kinesics/1",
+        "id": "http://elmnts.com/courseware/cvit/BuildingOnIt/12",
         "objectType": "Activity",
         "definition": {
-          "name": {
-            "en-us": "kinesics"
-          },
-          "description": {
-            "en-us": "Course Topic 3: Kinesics"
-          },
-          "type": "http://www.adlnet.gov/expapi/activities/module.html"
+          "type": "http://www.adlnet.gov/expapi/activities/assessment.html"
         }
-      }
+      },
       "context": {
         "registration": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
         "extensions": {
-          "http://elmnts.com/courseware/pageId": "1",
+          "http://elmnts.com/courseware/pageId": "12",
           "http://elmnts.com/courseware/topicId": "3"
         }
       },
@@ -555,34 +587,159 @@ could result in the corresponding xAPI statement:
       "stored": "2015-04-20T14:10:13.992Z"
     }
 ```
+### Branching
 
+Branching activities are activities that offer multiple paths to completion.
 
+#### onBranchingSimulationLaunched
+
+Used to generate a statement when a branching activity is launched.
+
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**name** | _{string}_ | Name of Current Branching Activity
+**description** | _{string}_ | Description of Current Branching Activity
+**activityName** | _{string}_ | Name of Active Activity
+
+#### onBranchingSimulationProgressed
+
+Used to generate a statement when a user progresses through a branching activity.
+
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [progressed](http://www.adlnet.gov/expapi/verbs/progressed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**name** | _{string}_ | Name of Current Branching Activity
+**description** | _{string}_ | Description of Current Branching Activity
+**activityName** | _{string}_ | Name of Active Activity
+
+#### onBranchingSimulationCompleted
+
+Used to generate a statement when a branching activity is completed.
+
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**name** | _{string}_ | Name of Current Branching Activity
+**description** | _{string}_ | Description of Current Branching Activity
+**activityName** | _{string}_ | Name of Active Activity
+**score** | _{number}_ | User's Raw Score for Activity
+**min** | _{number}_ | Minimum Points Available for Activity
+**possible** | _{number}_ | Maximum Points Available for Activity
+**success** | _{boolean}_ | Simulation success threshold reached
+
+#### onBranchingSimulationAttempted
+
+Used to generate a statement when a branching activity is completed.
+
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**name** | _{string}_ | Name of Current Branching Activity
+**description** | _{string}_ | Description of Current Branching Activity
+**activityName** | _{string}_ | Name of Active Activity
+**score** | _{number}_ | User's Raw Score for Activity
+**min** | _{number}_ | Minimum Points Available for Activity
+**possible** | _{number}_ | Maximum Points Available for Activity
+**success** | _{boolean}_ | Simulation success threshold reached
+
+#### onBranchingSimulationMastered
+
+Used to generate a statement when the final branching activity is completed.
+
+> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**name** | _{string}_ | Name of Current Branching Activity
+**description** | _{string}_ | Description of Current Branching Activity
+**activityName** | _{string}_ | Name of Active Activity
+**score** | _{number}_ | User's Raw Score for Activity
+**possible** | _{number}_ | Maximum Points Available for Activity
+**success** | _{boolean}_ | Simulation success threshold reached
+**completed** | _{boolean}_ | Value Determining User's Completion
+
+#### Branching Statement Example
+
+Progressing a Branching Activity could result in the corresponding xAPI statement:
+
+```json
+    {
+      "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
+      "actor": {
+	       "mbox": "mailto:providerDefault@noreply.com",
+	       "name": "provider Default"
+	   },
+	   "verb": {
+	   		"id": "http://adlnet.gov/expapi/verbs/progressed",
+	    	"display": {
+	           "en-us": "progressed"
+	       }
+	   },
+	   "object": {
+	       "id": "https://elmnts.com/organizations/www/courses/test/topics/test/pages/2/activities/ComplexBranching",
+	       "objectType": "Activity",
+	       "definition": {
+	           "name": {
+	               "en-us": "Flight Attendent Etiquette"
+	           },
+            	 "description": {
+              	"en-us": "An example of an exchange between flight attendant and pasenger"
+	           },
+	           "type": "http://adlnet.gov/expapi/activities/simulation"
+	       }
+	   },
+	   "context": {
+	       "registration": "00000000-a000-4000-a000-000000000000",
+	       "revision": "Elements",
+	       "language": "en-us",
+	       "extensions": {
+	           "https://elmnts.com/courseware/pageId": "2",
+	           "https://elmnts.com/courseware/topicId": 1,
+	           "https://elmnts.com/user/attribute/exampleAttr": 5000
+	       }
+	   },
+      "timestamp": "2015-04-20T14:10:43.563Z",
+      "stored": "2015-04-20T14:10:13.992Z"
+    }
+```
 
 ### Questions
 
 Questions may consist of: Knowledge Check, Survey, Feedback Responses, etc. Additionally Questions are used inside many other activity types.
 
 
-#### onQuestionInteracted
+#### onAnswerChanged
 
 Used to generate a statement each time a user changes his/her answer choice, clicks/touches related interactive question media.
 
-> ACTIVITY: [QUESTION](http://www.adlnet.gov/expapi/activities/question.html)
+> ACTIVITY: [INTERACTION](http://www.adlnet.gov/expapi/activities/interaction.html)
 > VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
 **questionId** | _{string}_ | Unique Question Id
 **questionText** | _{string}_ | Question Text
 **correctAnswer** | _{array}_ | Questions Correct Answer(s)
 **possibleAnswers** | _{object}_ | Question's Possible Answer(s)
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
+**givenAnswer** | _{array}_ | Currently Selected Answer(s)
 
-
-## onQuestionAsked
+#### onQuestionAsked
 
 Used to generate a statement each time the system displays an unanswered question.
 
@@ -592,78 +749,33 @@ Used to generate a statement each time the system displays an unanswered questio
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
 **questionId** | _{string}_ | Unique Question Id
 **questionText** | _{string}_ | Question Text
 **correctAnswer** | _{array}_ | Questions Correct Answer(s)
 **possibleAnswers** | _{object}_ | Question's Possible Answer(s)
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
 
 
 #### onQuestionAnswered
 
 Used to generate a statement each a user submits a question for grading.
 
-> ACTIVITY: [QUESTION](http://www.adlnet.gov/expapi/activities/question.html)
+> ACTIVITY: [INTERACTED](http://www.adlnet.gov/expapi/activities/interacted.html)
 > VERB: [ANSWERED](http://www.adlnet.gov/expapi/verbs/answered.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
 **questionId** | _{string}_ | Unique Question Id
 **questionText** | _{string}_ | Question Text
 **correctAnswer** | _{array}_ | Questions Correct Answer(s)
 **givenAnswer** | _{array}_ | User's Answer Choice(s)
 **possibleAnswers** | _{object}_ | Question's Possible Answer(s)
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
-
-#### onQuestionCompleted
-
-Used to generate a statement each a user submits a question for grading.
-
-> ACTIVITY: [QUESTION](http://www.adlnet.gov/expapi/activities/question.html)
-> VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**questionId** | _{string}_ | Unique Question Id
-**questionText** | _{string}_ | Question Text
-**correctAnswer** | _{array}_ | Questions Correct Answer(s)
-**givenAnswer** | _{array}_ | User's Answer Choice(s)
-**possibleAnswers** | _{object}_ | Question's Possible Answer(s)
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
-
-#### onQuestionExperienced
-
-Used to generate a statement each time a user views question previously answered.
-
-> ACTIVITY: [QUESTION](http://www.adlnet.gov/expapi/activities/question.html)
-> VERB: [EXPERIENCED](http://www.adlnet.gov/expapi/verbs/experienced.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**questionId** | _{string}_ | Unique Question Id
-**questionText** | _{string}_ | Question Text
-**correctAnswer** | _{array}_ | Questions Correct Answer(s)
-**givenAnswer** | _{array}_ | User's Answer Choice(s)
-**possibleAnswers** | _{object}_ | Question's Possible Answer(s)
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-
+**orderMatters** | _{boolean}_ | Should Order Determine Correctness
 
 #### Question Statement Example
 
 Asking a question with the data:
+
 ```javascript
     var contextualData = {
         "topic": "kinesics",
@@ -681,6 +793,7 @@ Asking a question with the data:
     }
 ```
 could result in the corresponding xAPI statement:
+
 ```json
     {
       "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
@@ -718,168 +831,227 @@ could result in the corresponding xAPI statement:
     }
 ```
 
+### Tooltips
 
-### Simulations
+Tooltips are activities that require user input to relay supplementary information on a topic.
 
-> Simulations are activities containing many objectives, often spanning over several pages. Some example Simulations may be: Branching Scenarios, Decision Points, Involved Custom Activites, Video with Questions, etc.
+#### toolTipsInitialized
 
+Used to generate a statement when a Tooltip activity is launched.
 
-#### onSimulationLaunched
-
-Used to generate a statement each time the system sets up/displays a simulation activity.
-
-> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
-> VERB: [LAUNCHED](http://www.adlnet.gov/expapi/verbs/launched.html)
+> ACTIVITY: [TOOLTIP](http://www.adlnet.gov/expapi/activities/tooltip.html)
+> VERB: [INITIALIZED](http://www.adlnet.gov/expapi/verbs/initialized.html)
 > ACTOR: SYSTEM
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**name** | _{string}_ | Simulation Name
-**description** | _{string}_ | Description of Simulation
-**score** | _{number}_ | User's Raw Score on Assessment
-**success** | _{boolean}_ | Simulation success threshold reached
-**completion** | _{boolean}_ | Simulation requirements satisfied
+**tooltipId** | _{string}_ | Unique Tooltip ID
 
+#### toolTipTouched
 
-#### onSimulationAttempted
+Used to generate a statement when a tooltip is interacted with.
 
-Used to generate a statement each time the user navigates to the simulation's end.
-
-> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
-> VERB: [ATTEMPTED](http://www.adlnet.gov/expapi/verbs/attempted.html)
+> ACTIVITY: [TOOLTIP](http://www.adlnet.gov/expapi/activities/tooltip.html)
+> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**name** | _{string}_ | Simulation Name
-**description** | _{string}_ | Description of Assessment
-**score** | _{number}_ | User's Raw Score on Assessment
-**success** | _{boolean}_ | Simulation success threshold reached
-**completion** | _{boolean}_ | Simulation requirements satisfied
+**tooltipId** | _{string}_ | Unique Tooltip ID
 
-#### onSimulationProgressed
+#### toolTipsCompleted
 
-Used to generate a statement each time a user advances through a simulation.
+Used to generate a statement when all tooltips in an activity have been interacted with.
 
-> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
-> VERB: [PROGRESSED](http://www.adlnet.gov/expapi/verbs/progressed.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**name** | _{string}_ | Given Name of the Simulation
-**description** | _{string}_ | Description of Simulation
-**score** | _{number}_ | User's Raw Score on Simulation
-**success** | _{boolean}_ | Simulation success threshold reached
-**completion** | _{boolean}_ | Simulation requirements satisfied
-
-#### onSimulationCompleted
-
-Used to generate a statement each time a user finishes a simulation.
-
-> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
+> ACTIVITY: [TOOLTIP](http://www.adlnet.gov/expapi/activities/tooltip.html)
 > VERB: [COMPLETED](http://www.adlnet.gov/expapi/verbs/completed.html)
 > ACTOR: USER
 
 Contextual Data | Type | Description
 -----------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**name** | _{string}_ | Given Name of the Simulation
-**description** | _{string}_ | Description of Simulation
-**score** | _{number}_ | User's Raw Score on Simulation
-**success** | _{boolean}_ | Simulation success threshold reached
+**tooltipId** | _{string}_ | Unique Tooltip ID
 
-#### onSimulationMastered
+#### ToolTips Statement Example
 
-Used to generate a statement when a user successfully completes and satisfies all simulation requirements.
+Initializing a Tooltip could result in the corresponding xAPI statement:
 
-> ACTIVITY: [SIMULATION](http://www.adlnet.gov/expapi/activities/simulation.html)
-> VERB: [MASTERED](http://www.adlnet.gov/expapi/verbs/mastered.html)
-> ACTOR: USER
-
-Contextual Data | Type | Description
------------|----------|----------
-**activity** | _{string}_ | Associated Activity Name
-**page** | _{string}_ | Associated Page Number
-**topic** | _{string}_ | Associated Topic Name
-**name** | _{string}_ | Given Name of the Simulation
-**description** | _{string}_ | Description of Simulation
-**score** | _{number}_ | User's Raw Score on Simulation
-
-#### Simulation Statement Example
-
-Launching a simulation with the data:
-```javascript
-    var contextualData = {
-        "topic": "kinesics",
-        "page": "8",
-        "activity": "DangerZone",
-        "score": 0,
-        "success": false,
-        "completed": false,
-        "name": "DangerZone",
-        "description": "Use the provided information to determine the correct level of danger."
-    }
-```
-could result in the corresponding xAPI statement:
 ```json
     {
       "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
       "actor": {
-        "mbox": "mailto:sglancy@gmail.com",
-        "name": "Scott Glancy"
+       	"account": {
+           	"homePage": "https://www.elmnts.com/organizations/www",
+           	"name": "00000000-a000-4000-a000-000000000000"
+      		 }
+   		},
+    	"verb": {
+       	"id": "http://adlnet.gov/expapi/verbs/initialized",
+       	"display": {
+          	 "en-us": "initialized"
+       	}
+    	},
+    	"object": {
+       	"id": "https://elmnts.com/organizations/www/courses/test/topics/test/pages/2/tooltips",
+        	"objectType": "Activity",
+	        	"definition": {
+		           "type": "http://adlnet.gov/expapi/activities/tooltip",
+		           "extensions": {
+		                "https://elmnts.com/courseware/activityExtensions/videoSrc": [
+		                  "path/to/video.mp4"
+		              ],
+		                "https://elmnts.com/courseware/activityExtensions/callbackTime": "11",
+		                "https://elmnts.com/courseware/activityExtensions/allTooltipIds": [
+		                  "id1",
+		                  "id2",
+		                  "id3"
+		              ]
+		           }
+		        }
+		     }
+        }
+    },
+    "context": {
+        "registration": "00000000-a000-4000-a000-000000000000",
+        "revision": "Elements",
+        "language": "en-us",
+        "extensions": {
+            "https://elmnts.com/courseware/pageId": "2",
+            "https://elmnts.com/courseware/topicId": "1",
+            "https://elmnts.com/user/attribute/exampleAttr": 5000
+        }
+    },
+      "timestamp": "2015-04-20T14:10:43.563Z",
+      "stored": "2015-04-20T14:10:13.992Z"
+    }
+```
+
+### Videos
+
+These statements hold information about a user's interaction with video content. With this information, you determine trends such as: what sections users rewatch, pause at, keep muted, or skip through.
+
+#### onVideoSeeked
+
+Used to generate a statement when a user seeks through a video.
+
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
+> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**src** | _{string}_ | Source File For Video
+**previousTime** | _{number}_ | Point In Video Before Interaction
+**currentTime** | _{number}_ | Point In Video After Interaction
+**volume** | _{number}_ | Current Volume Of Video
+**duration** | _{number}_ | Total Duration Of Video
+
+#### onVideoPlayed
+
+Used to generate a statement when a user plays a video.
+
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
+> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**src** | _{string}_ | Source File For Video
+**currentTime** | _{number}_ | Point In Video After Interaction
+**volume** | _{number}_ | Current Volume Of Video
+
+#### onVideoPaused
+
+Used to generate a statement when a user pauses a video.
+
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
+> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**src** | _{string}_ | Source File For Video
+**currentTime** | _{number}_ | Point In Video After Interaction
+**volume** | _{number}_ | Current Volume Of Video
+
+#### onVideoEnded
+
+Used to generate a statement when a user finishes video.
+
+> ACTIVITY: [MEDIA](http://www.adlnet.gov/expapi/activities/media.html)
+> VERB: [INTERACTED](http://www.adlnet.gov/expapi/verbs/interacted.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**src** | _{string}_ | Source File For Video
+**volume** | _{number}_ | Current Volume Of Video
+**duration** | _{number}_ | Total Duration Of Video
+
+#### Video Statement Example
+
+Seeking a Video could result in the corresponding xAPI statement:
+
+```json
+    {
+      "id": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
+      "actor": {
+          "mbox": "mailto:providerDefault@noreply.com",
+          "name": "provider Default"
       },
       "verb": {
-        "id": "http://www.adlnet.gov/expapi/verbs/launched.html",
-        "display": {
-          "en-us": "launched"
-        }
+      	   "id": "http://adlnet.gov/expapi/verbs/interacted",
+       	"display": {
+              "en-us": "interacted"
+          }
       },
       "object": {
-        "id": "http://elmnts.com/courseware/cvit/kinesics/8/DangerZone",
-        "objectType": "Activity",
-        "definition": {
-          "name": {
-            "en-us": "DangerZone"
-          },
-          "description": {
-            "en-us": "Use the provided information to determine the correct level of danger."
+          "id": "https://elmnts.com/organizations/www/courses/test/media/src/example.mp4",
+          "objectType": "Activity",
+          "definition": {
+              "name": {
+                  "en-us": "topics/3/video/example.mp4"
+              },
+              "type": "http://adlnet.gov/expapi/activities/media"
           }
-        }
-      },
-      "result": {
-        "score": {
-          "scaled": 0,
-          "raw": 0
-        },
-        "success": false,
-        "completion": false
       },
       "context": {
-        "registration": "xxxxxxx-xxxx-xxx-xxxx-xxxxxxx",
-        "extensions": {
-          "http://elmnts.com/courseware/pageId": "8",
-          "http://elmnts.com/courseware/topicId": "3"
-        }
+          "registration": "00000000-a000-4000-a000-000000000000",
+          "revision": "Elements",
+          "language": "en-us",
+          "extensions": {
+              "https://elmnts.com/courseware/video/interaction": "seeked",
+              "https://elmnts.com/courseware/video/previousTime": "18000",
+              "https://elmnts.com/courseware/video/currentTime": "14500",
+              "https://elmnts.com/courseware/video/volume": ".5",
+              "https://elmnts.com/courseware/video/duration": "20000",
+              "https://elmnts.com/courseware/pageId": "2",
+              "https://elmnts.com/courseware/topicId": "1",
+              "https://elmnts.com/user/attribute/exampleAttr": 5000
+          }
       },
       "timestamp": "2015-04-20T14:10:43.563Z",
       "stored": "2015-04-20T14:10:13.992Z"
     }
 ```
 
+### Other
 
-### Extending Statements
+#### onFreeResponseAnswered
+
+Used to generate a statement when the user a commits a free response question.
+
+> ACTIVITY: [INTERACTION](http://www.adlnet.gov/expapi/activities/interaction.html)
+> VERB: [ANSWERED](http://www.adlnet.gov/expapi/verbs/answered.html)
+> ACTOR: USER
+
+Contextual Data | Type | Description
+-----------|----------|----------
+**activityName** | _{string}_ | Name of Active Activity
+**questionText** | _{string}_ | Question Text
+**questionId** | _{number}_ | Unique Question Id
+**disclosure** | _{string}_ | User Entered Free Response
+
+## Extending Statements
 
 The Elements Platform has the ability to extend statements. Here's a quick glance at how we add additional extensions to an xAPI Statement.
 
